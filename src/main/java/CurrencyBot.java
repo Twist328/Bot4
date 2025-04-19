@@ -2,10 +2,12 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class CurrencyBot extends TelegramLongPollingBot {
@@ -14,12 +16,12 @@ public class CurrencyBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "YourBotUsername"; // замените на имя
+        return "YourBotUsername"; // Заменить на имя бота
     }
 
     @Override
     public String getBotToken() {
-        return "1675589814:AAFoAl8VGq5nFxSX0_OfP584DJkn43i5nn8"; // замените на токен
+        return EnvLoader.get("BOT_TOKEN");
     }
 
     @Override
@@ -45,54 +47,20 @@ public class CurrencyBot extends TelegramLongPollingBot {
                     break;
 
                 case "🇺🇸 USD":
-                    message = new SendMessage(chatId, currencyService.getRateFor("USD"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇪🇺 EUR":
-                    message = new SendMessage(chatId, currencyService.getRateFor("EUR"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇨🇳 CNY":
-                    message = new SendMessage(chatId, currencyService.getRateFor("CNY"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇰🇿 KZT":
-                    message = new SendMessage(chatId, currencyService.getRateFor("KZT"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇬🇧 GBP":
-                    message = new SendMessage(chatId, currencyService.getRateFor("GBP"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇯🇵 JPY":
-                    message = new SendMessage(chatId, currencyService.getRateFor("JPY"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇨🇦 CAD":
-                    message = new SendMessage(chatId, currencyService.getRateFor("CAD"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇦🇺 AUD":
-                    message = new SendMessage(chatId, currencyService.getRateFor("AUD"));
-                    message.setReplyMarkup(buildKeyboard());
-                    break;
-
                 case "🇳🇿 NZD":
-                    message = new SendMessage(chatId, currencyService.getRateFor("NZD"));
+                    message = new SendMessage(chatId, currencyService.getRateFor(messageText.replaceAll("[^A-Z]", "")));
                     message.setReplyMarkup(buildKeyboard());
                     break;
 
                 default:
-                    // Пробуем получить курс по введённому вручную коду
-                    String rate = currencyService.getRateFor(messageText);
-                    message = new SendMessage(chatId, rate);
+                    message = new SendMessage(chatId, currencyService.getRateFor(messageText));
                     message.setReplyMarkup(buildKeyboard());
                     break;
             }
@@ -104,6 +72,7 @@ public class CurrencyBot extends TelegramLongPollingBot {
             }
         }
     }
+
     private ReplyKeyboardMarkup buildKeyboard() {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         keyboardMarkup.setResizeKeyboard(true);
@@ -111,27 +80,28 @@ public class CurrencyBot extends TelegramLongPollingBot {
 
         List<KeyboardRow> rows = new ArrayList<>();
 
-        // Первая строка — основные валюты
+        // Первая строка
         KeyboardRow row1 = new KeyboardRow();
-        row1.add("🇺🇸 USD");
-        row1.add("🇪🇺 EUR");
-        row1.add("🇨🇳 CNY");
+        row1.add(new KeyboardButton("🇺🇸 USD"));
+        row1.add(new KeyboardButton("🇪🇺 EUR"));
+        row1.add(new KeyboardButton("🇨🇳 CNY"));
 
         // Вторая строка
         KeyboardRow row2 = new KeyboardRow();
-        row2.add("🇰🇿 KZT");
-        row2.add("🇬🇧 GBP");
-        row2.add("🇯🇵 JPY");
+        row2.add(new KeyboardButton("🇰🇿 KZT"));
+        row2.add(new KeyboardButton("🇬🇧 GBP"));
+        row2.add(new KeyboardButton("🇯🇵 JPY"));
 
-        // Третья строка — команды
+        // Третья строка
         KeyboardRow row3 = new KeyboardRow();
-        row3.add("🚀 СТАРТ");
-        row3.add("📋 СПИСОК ВАЛЮТ");
-        KeyboardRow row4 = new KeyboardRow();
+        row3.add(new KeyboardButton("🚀 СТАРТ"));
+        row3.add(new KeyboardButton("📋 СПИСОК ВАЛЮТ"));
 
-        row4.add("🇨🇦 CAD");
-        row4.add("🇦🇺 AUD");
-        row4.add("🇳🇿 NZD");
+        // Четвёртая строка
+        KeyboardRow row4 = new KeyboardRow();
+        row4.add(new KeyboardButton("🇨🇦 CAD"));
+        row4.add(new KeyboardButton("🇦🇺 AUD"));
+        row4.add(new KeyboardButton("🇳🇿 NZD"));
 
         rows.add(row1);
         rows.add(row2);
