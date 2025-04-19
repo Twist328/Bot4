@@ -30,7 +30,7 @@ public class CurrencyService {
 
     public String getRateFor(String currencyCode) {
         currencyCode = currencyCode.toUpperCase();
-
+        //String currencyCode = input.replaceAll("[^A-Z]", "");
         if (!rates.containsKey(currencyCode)) {
             return "🤷‍♂️ Извините, я пока не умею показывать курс такой валюты.";
         }
