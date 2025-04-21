@@ -45,5 +45,5 @@ build/
 *.credentials
 *.config
 *.properties.localgit add .gitignore
-                  git commit -m "Обновлён .gitignore: защита от секретов"
+                  git commit -m "Обновлён .gitignore: защита от супер секретов"
                   git push
