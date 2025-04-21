@@ -22,7 +22,7 @@ public class CurrencyBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return System.getenv("TELEGRAM_BOT_TOKEN");
+        return EnvLoader.get("TELEGRAM_BOT_TOKEN");
     }
 
     @Override
