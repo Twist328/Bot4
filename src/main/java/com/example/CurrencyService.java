@@ -1,4 +1,5 @@
 package com.example;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.*;
 import java.net.URL;
@@ -12,7 +13,8 @@ public class CurrencyService {
 
     private final Map<String, Double> rates = new ConcurrentHashMap<>();
 
-    private final List<String> supportedCurrencies = List.of("USD", "EUR", "CNY", "KZT", "GBP", "JPY","CAD","AUD","NZD");
+    private final List<String> supportedCurrencies = List.of("USD", "EUR", "CNY", "KZT", "GBP", "JPY","CAD","AUD","NZD",
+            "AMD","TRY","GEL","RSD","VND");
 
     public CurrencyService() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();

@@ -1,4 +1,5 @@
 package com.example;
+
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -56,6 +57,14 @@ public class CurrencyBot extends TelegramLongPollingBot {
                 case "🇨🇦 CAD":
                 case "🇦🇺 AUD":
                 case "🇳🇿 NZD":
+                case "🇦🇲 AMD":
+                case "🇹🇷 TRY":
+                case "🇬🇪 GEL":
+                case "🇷🇸 RSD":
+                case "🇧🇾 BYN":
+                case "🇻🇳 VND":
+
+
                     message = new SendMessage(chatId, currencyService.getRateFor(messageText.replaceAll("[^A-Z]", "")));
                     message.setReplyMarkup(buildKeyboard());
                     break;
@@ -104,10 +113,22 @@ public class CurrencyBot extends TelegramLongPollingBot {
         row4.add(new KeyboardButton("🇦🇺 AUD"));
         row4.add(new KeyboardButton("🇳🇿 NZD"));
 
+        KeyboardRow row5 = new KeyboardRow();
+        row5.add(new KeyboardButton("🇦🇲 AMD"));
+        row5.add(new KeyboardButton("🇹🇷 TRY"));
+        row5.add(new KeyboardButton("🇬🇪 GEL"));
+
+        KeyboardRow row6 = new KeyboardRow();
+        row6.add(new KeyboardButton("🇷🇸 RSD"));
+        row6.add(new KeyboardButton("🇧🇾 BYN"));
+        row6.add(new KeyboardButton("🇻🇳 VND"));
+
         rows.add(row1);
         rows.add(row2);
         rows.add(row3);
         rows.add(row4);
+        rows.add(row5);
+        rows.add(row6);
 
         keyboardMarkup.setKeyboard(rows);
         return keyboardMarkup;
