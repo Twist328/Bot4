@@ -47,3 +47,6 @@ build/
 *.properties.localgit add .gitignore
                   git commit -m "Обновлён .gitignore: защита от супер секретов"
                   git push
+# Случайные файлы
+git
+master
