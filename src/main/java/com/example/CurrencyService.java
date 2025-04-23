@@ -13,8 +13,8 @@ public class CurrencyService {
 
     private final Map<String, Double> rates = new ConcurrentHashMap<>();
 
-    private final List<String> supportedCurrencies = List.of("USD", "EUR", "CNY", "KZT", "GBP", "JPY","CAD","AUD","NZD",
-            "AMD","TRY","GEL","RSD","VND");
+    private final List<String> supportedCurrencies = List.of("USD", "EUR", "CNY", "KZT", "GBP", "JPY", "CAD", "AUD", "NZD",
+            "AMD", "TRY", "GEL", "RSD", "VND");
 
     public CurrencyService() {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
@@ -33,14 +33,16 @@ public class CurrencyService {
 
     public String getRateFor(String currencyCode) {
         currencyCode = currencyCode.toUpperCase();
-        //String currencyCode = input.replaceAll("[^A-Z]", "");
         if (!rates.containsKey(currencyCode)) {
             return "🤷‍♂️ Извините, я пока не умею показывать курс такой валюты.";
         }
 
         double rate = rates.get(currencyCode);
+        System.out.printf(">> ✅ Курс %s успешно отдан: %.4f%n", currencyCode, rate);
+
         return String.format("💱 Курс %s к RUB: %.4f", currencyCode, rate);
     }
+
 
     public void updateRates() {
         try {
@@ -69,10 +71,11 @@ public class CurrencyService {
             rates.putAll(updated);
             LocalDate lastUpdateDate = LocalDate.now();
             System.out.println("✅ Курсы обновлены: " + lastUpdateDate);
-
+            //System.out.printf(">> ✅ Курс %s успешно отдан: %.4f%n", currencyCode, rate);
         } catch (Exception e) {
             System.err.println("❌ Ошибка обновления курсов: " + e.getMessage());
         }
+
     }
 
     public List<String> getSupportedCurrencies() {
@@ -111,5 +114,6 @@ public class CurrencyService {
         } catch (Exception e) {
             return "😔 Не удалось загрузить список валют.";
         }
+
     }
 }

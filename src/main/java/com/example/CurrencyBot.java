@@ -69,6 +69,7 @@ public class CurrencyBot extends TelegramLongPollingBot {
                     message.setReplyMarkup(buildKeyboard());
                     break;
 
+
                 default:
                     message = new SendMessage(chatId, currencyService.getRateFor(messageText));
                     message.setReplyMarkup(buildKeyboard());
@@ -80,6 +81,7 @@ public class CurrencyBot extends TelegramLongPollingBot {
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
+            System.out.println(">> Кнопка нажата: " + messageText);
         }
     }
 
@@ -113,22 +115,29 @@ public class CurrencyBot extends TelegramLongPollingBot {
         row4.add(new KeyboardButton("🇦🇺 AUD"));
         row4.add(new KeyboardButton("🇳🇿 NZD"));
 
+        // Пятая строка
         KeyboardRow row5 = new KeyboardRow();
         row5.add(new KeyboardButton("🇦🇲 AMD"));
         row5.add(new KeyboardButton("🇹🇷 TRY"));
         row5.add(new KeyboardButton("🇬🇪 GEL"));
 
+        // Шестая строка
         KeyboardRow row6 = new KeyboardRow();
         row6.add(new KeyboardButton("🇷🇸 RSD"));
         row6.add(new KeyboardButton("🇧🇾 BYN"));
         row6.add(new KeyboardButton("🇻🇳 VND"));
 
+        // Седьмая строка — кросс-курсы 1
+
+
+        // Добавляем все строки
         rows.add(row1);
         rows.add(row2);
         rows.add(row3);
         rows.add(row4);
         rows.add(row5);
         rows.add(row6);
+
 
         keyboardMarkup.setKeyboard(rows);
         return keyboardMarkup;
