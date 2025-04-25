@@ -1,5 +1,8 @@
 package com.example;
 
+import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
+import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -9,21 +12,42 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class CurrencyBot extends TelegramLongPollingBot {
 
     private final CurrencyService currencyService = new CurrencyService();
+    private final ForexService forexService = new ForexService();
+
 
     @Override
     public String getBotUsername() {
-        return "CrazywetherBot"; // Заменить на имя бота
+        return "CrazywetherBot";
     }
 
     @Override
     public String getBotToken() {
         return EnvLoader.get("TELEGRAM_BOT_TOKEN");
+    }
+    @Override
+    public void onRegister() {
+        List<BotCommand> commands = List.of(
+                new BotCommand("/start", "🚀 Запуск бота"),
+                new BotCommand("/list", "📋 Список валют ЦБ"),
+                new BotCommand("/eurusd", "Курс EUR/USD"),
+                new BotCommand("/gbpusd", "Курс GBP/USD"),
+                new BotCommand("/gbpjpy", "Курс GBP/JPY"),
+                new BotCommand("/eurchf", "Курс EUR/CHF"),
+                new BotCommand("/eurgbp", "Курс EUR/GBP")
+        );
+
+        try {
+            execute(new SetMyCommands(commands, new BotCommandScopeDefault(), null));
+            System.out.println("✅ Меню команд установлено!");
+        } catch (TelegramApiException e) {
+            System.err.println("❌ Ошибка установки меню команд:");
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -32,6 +56,7 @@ public class CurrencyBot extends TelegramLongPollingBot {
             String chatId = update.getMessage().getChatId().toString();
             String messageText = update.getMessage().getText().trim().toUpperCase();
 
+            System.out.println(">> Введено: " + messageText);
             SendMessage message;
 
             switch (messageText) {
@@ -43,9 +68,17 @@ public class CurrencyBot extends TelegramLongPollingBot {
 
                 case "/LIST":
                 case "📋 СПИСОК ВАЛЮТ":
-                    message = new SendMessage(chatId, currencyService.getOtherCurrenciesList());
+                    message = new SendMessage(chatId, currencyService.getFormattedCurrencyList());
                     message.setParseMode("Markdown");
                     message.setReplyMarkup(buildKeyboard());
+                    break;
+
+                case "/EURUSD":
+                case "/GBPUSD":
+                case "/GBPJPY":
+                case "/EURCHF":
+                case "/EURGBP":
+                    message = new SendMessage(chatId, forexService.getRate(messageText.replace("/", "")));
                     break;
 
                 case "🇺🇸 USD":
@@ -63,12 +96,9 @@ public class CurrencyBot extends TelegramLongPollingBot {
                 case "🇷🇸 RSD":
                 case "🇧🇾 BYN":
                 case "🇻🇳 VND":
-
-
                     message = new SendMessage(chatId, currencyService.getRateFor(messageText.replaceAll("[^A-Z]", "")));
                     message.setReplyMarkup(buildKeyboard());
                     break;
-
 
                 default:
                     message = new SendMessage(chatId, currencyService.getRateFor(messageText));
@@ -81,7 +111,6 @@ public class CurrencyBot extends TelegramLongPollingBot {
             } catch (TelegramApiException e) {
                 e.printStackTrace();
             }
-            System.out.println(">> Кнопка нажата: " + messageText);
         }
     }
 
@@ -92,52 +121,40 @@ public class CurrencyBot extends TelegramLongPollingBot {
 
         List<KeyboardRow> rows = new ArrayList<>();
 
-        // Первая строка
-        KeyboardRow row1 = new KeyboardRow();
-        row1.add(new KeyboardButton("🇺🇸 USD"));
-        row1.add(new KeyboardButton("🇪🇺 EUR"));
-        row1.add(new KeyboardButton("🇨🇳 CNY"));
+        rows.add(new KeyboardRow(List.of(
+                new KeyboardButton("🇺🇸 USD"),
+                new KeyboardButton("🇪🇺 EUR"),
+                new KeyboardButton("🇨🇳 CNY")
+        )));
 
-        // Вторая строка
-        KeyboardRow row2 = new KeyboardRow();
-        row2.add(new KeyboardButton("🇰🇿 KZT"));
-        row2.add(new KeyboardButton("🇬🇧 GBP"));
-        row2.add(new KeyboardButton("🇯🇵 JPY"));
+        rows.add(new KeyboardRow(List.of(
+                new KeyboardButton("🇰🇿 KZT"),
+                new KeyboardButton("🇬🇧 GBP"),
+                new KeyboardButton("🇯🇵 JPY")
+        )));
 
-        // Третья строка
-        KeyboardRow row3 = new KeyboardRow();
-        row3.add(new KeyboardButton("🚀 СТАРТ"));
-        row3.add(new KeyboardButton("📋 СПИСОК ВАЛЮТ"));
+        rows.add(new KeyboardRow(List.of(
+                new KeyboardButton("🚀 СТАРТ"),
+                new KeyboardButton("📋 СПИСОК ВАЛЮТ")
+        )));
 
-        // Четвёртая строка
-        KeyboardRow row4 = new KeyboardRow();
-        row4.add(new KeyboardButton("🇨🇦 CAD"));
-        row4.add(new KeyboardButton("🇦🇺 AUD"));
-        row4.add(new KeyboardButton("🇳🇿 NZD"));
+        rows.add(new KeyboardRow(List.of(
+                new KeyboardButton("🇨🇦 CAD"),
+                new KeyboardButton("🇦🇺 AUD"),
+                new KeyboardButton("🇳🇿 NZD")
+        )));
 
-        // Пятая строка
-        KeyboardRow row5 = new KeyboardRow();
-        row5.add(new KeyboardButton("🇦🇲 AMD"));
-        row5.add(new KeyboardButton("🇹🇷 TRY"));
-        row5.add(new KeyboardButton("🇬🇪 GEL"));
+        rows.add(new KeyboardRow(List.of(
+                new KeyboardButton("🇦🇲 AMD"),
+                new KeyboardButton("🇹🇷 TRY"),
+                new KeyboardButton("🇬🇪 GEL")
+        )));
 
-        // Шестая строка
-        KeyboardRow row6 = new KeyboardRow();
-        row6.add(new KeyboardButton("🇷🇸 RSD"));
-        row6.add(new KeyboardButton("🇧🇾 BYN"));
-        row6.add(new KeyboardButton("🇻🇳 VND"));
-
-        // Седьмая строка — кросс-курсы 1
-
-
-        // Добавляем все строки
-        rows.add(row1);
-        rows.add(row2);
-        rows.add(row3);
-        rows.add(row4);
-        rows.add(row5);
-        rows.add(row6);
-
+        rows.add(new KeyboardRow(List.of(
+                new KeyboardButton("🇷🇸 RSD"),
+                new KeyboardButton("🇧🇾 BYN"),
+                new KeyboardButton("🇻🇳 VND")
+        )));
 
         keyboardMarkup.setKeyboard(rows);
         return keyboardMarkup;

@@ -1,119 +1,103 @@
 package com.example;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.*;
+import java.io.InputStream;
 import java.net.URL;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import org.w3c.dom.*;
 
 public class CurrencyService {
 
-    private static final String API_URL = "https://www.cbr.ru/scripts/XML_daily.asp";
-
-    private final Map<String, Double> rates = new ConcurrentHashMap<>();
-
-    private final List<String> supportedCurrencies = List.of("USD", "EUR", "CNY", "KZT", "GBP", "JPY", "CAD", "AUD", "NZD",
-            "AMD", "TRY", "GEL", "RSD", "VND");
+    private static final String CBR_URL = "https://www.cbr.ru/scripts/XML_daily.asp";
+    private final Map<String, String> rates = new HashMap<>();
 
     public CurrencyService() {
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-        long delay = computeInitialDelayInSeconds();
-        scheduler.scheduleAtFixedRate(this::updateRates, delay, 86400, TimeUnit.SECONDS);
-
-        updateRates(); // Первичная загрузка
+        loadRates();
+        startAutoReload();
     }
+    public String getFormattedCurrencyList() {
+        StringBuilder sb = new StringBuilder("*Курсы валют ЦБ РФ:*\n\n");
 
-    private long computeInitialDelayInSeconds() {
-        LocalDate now = LocalDate.now();
-        LocalDate next = now.plusDays(1);
-        return java.time.Duration.between(java.time.LocalDateTime.now(),
-                java.time.LocalDateTime.of(next, java.time.LocalTime.MIDNIGHT)).getSeconds();
-    }
-
-    public String getRateFor(String currencyCode) {
-        currencyCode = currencyCode.toUpperCase();
-        if (!rates.containsKey(currencyCode)) {
-            return "🤷‍♂️ Извините, я пока не умею показывать курс такой валюты.";
+        int count = 0;
+        for (String key : rates.keySet()) {
+            String flag = getFlagForCurrency(key);
+            sb.append(flag).append(" *").append(key).append("*").append("   ");
+            count++;
+            if (count % 3 == 0) sb.append("\n"); // каждые 3 валюты — новая строка
         }
 
-        double rate = rates.get(currencyCode);
-        System.out.printf(">> ✅ Курс %s успешно отдан: %.4f%n", currencyCode, rate);
-
-        return String.format("💱 Курс %s к RUB: %.4f", currencyCode, rate);
+        return sb.toString();
     }
-
-
-    public void updateRates() {
+    private void loadRates() {
         try {
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                    .parse(new URL(API_URL).openStream());
+            InputStream stream = new URL(CBR_URL).openStream();
+            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(stream);
+            doc.getDocumentElement().normalize();
 
-            NodeList valuteList = doc.getElementsByTagName("Valute");
-            Map<String, Double> updated = new HashMap<>();
-
-            for (int i = 0; i < valuteList.getLength(); i++) {
-                Element valute = (Element) valuteList.item(i);
-                String charCode = valute.getElementsByTagName("CharCode").item(0).getTextContent();
-
-                String valueStr = valute.getElementsByTagName("Value").item(0).getTextContent();
-                String nominalStr = valute.getElementsByTagName("Nominal").item(0).getTextContent();
-
-                double value = Double.parseDouble(valueStr.replace(',', '.'));
-                int nominal = Integer.parseInt(nominalStr);
-                double rate = value / nominal;
-
-                updated.put(charCode, rate);
+            NodeList nodeList = doc.getElementsByTagName("Valute");
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    String charCode = element.getElementsByTagName("CharCode").item(0).getTextContent();
+                    String value = element.getElementsByTagName("Value").item(0).getTextContent().replace(",", ".");
+                    String nominal = element.getElementsByTagName("Nominal").item(0).getTextContent();
+                    rates.put(charCode, formatRate(charCode, value, nominal));
+                }
             }
 
-            updated.put("RUB", 1.0);
-            rates.clear();
-            rates.putAll(updated);
-            LocalDate lastUpdateDate = LocalDate.now();
-            System.out.println("✅ Курсы обновлены: " + lastUpdateDate);
-            //System.out.printf(">> ✅ Курс %s успешно отдан: %.4f%n", currencyCode, rate);
-        } catch (Exception e) {
-            System.err.println("❌ Ошибка обновления курсов: " + e.getMessage());
-        }
+            System.out.println("✅ Курсы ЦБ РФ обновлены.");
 
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка загрузки курсов ЦБ РФ: " + e.getMessage());
+        }
     }
 
-    public List<String> getSupportedCurrencies() {
-        return supportedCurrencies;
+    private void startAutoReload() {
+        Timer timer = new Timer(true); // daemon thread
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("⏰ Автоматическое обновление курсов...");
+                loadRates();
+            }
+        }, 3600_000, 3600_000); // 1 час = 3600_000 мс
+    }
+
+    private String formatRate(String code, String value, String nominal) {
+        String flag = getFlagForCurrency(code);
+        return String.format("%s %s *%s* стоит *%s ₽*", flag, nominal, code, value);
+    }
+
+    private String getFlagForCurrency(String code) {
+        return switch (code) {
+            case "USD" -> "🇺🇸";
+            case "EUR" -> "🇪🇺";
+            case "GBP" -> "🇬🇧";
+            case "JPY" -> "🇯🇵";
+            case "CNY" -> "🇨🇳";
+            case "CHF" -> "🇨🇭";
+            case "AUD" -> "🇦🇺";
+            case "CAD" -> "🇨🇦";
+            case "BYN" -> "🇧🇾";
+            case "KZT" -> "🇰🇿";
+            default -> "💱";
+        };
+    }
+
+    public String getRateFor(String code) {
+        String upperCode = code.toUpperCase();
+        return rates.getOrDefault(upperCode, "❌ Извините, не удалось найти курс для: " + upperCode);
     }
 
     public String getOtherCurrenciesList() {
-        try {
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder()
-                    .parse(new URL(API_URL).openStream());
-
-            NodeList valuteList = doc.getElementsByTagName("Valute");
-
-            StringBuilder result = new StringBuilder("📋 Другие доступные валюты:\n\n");
-
-            for (int i = 0; i < valuteList.getLength(); i++) {
-                Element valute = (Element) valuteList.item(i);
-                String charCode = valute.getElementsByTagName("CharCode").item(0).getTextContent();
-
-                if (supportedCurrencies.contains(charCode)) continue;
-
-                String name = valute.getElementsByTagName("Name").item(0).getTextContent();
-                String valueStr = valute.getElementsByTagName("Value").item(0).getTextContent();
-                String nominalStr = valute.getElementsByTagName("Nominal").item(0).getTextContent();
-
-                double value = Double.parseDouble(valueStr.replace(',', '.'));
-                int nominal = Integer.parseInt(nominalStr);
-                double rate = value / nominal;
-
-                result.append(String.format("💸 %s (%s) — %.4f RUB\n", charCode, name, rate));
-            }
-
-            result.append("\n✍️ Просто отправь код валюты, чтобы узнать её курс.");
-            return result.toString();
-
-        } catch (Exception e) {
-            return "😔 Не удалось загрузить список валют.";
+        StringBuilder sb = new StringBuilder("*Курсы ЦБ РФ:*\n");
+        for (String key : rates.keySet()) {
+            sb.append("- ").append(key).append("\\n");
         }
-
+        return sb.toString();
     }
 }
