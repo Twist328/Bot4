@@ -10,12 +10,17 @@ public class EnvLoader {
     static {
         try {
             props.load(new FileInputStream(".env"));
+            System.out.println("✅ Загружен .env файл локально.");
         } catch (IOException e) {
-            System.err.println("Ошибка загрузки .env: " + e.getMessage());
+            System.out.println("ℹ️ .env файл не найден, использую переменные окружения...");
         }
     }
 
     public static String get(String key) {
-        return props.getProperty(key);
+        String value = props.getProperty(key);
+        if (value == null) {
+            value = System.getenv(key);
+        }
+        return value;
     }
 }

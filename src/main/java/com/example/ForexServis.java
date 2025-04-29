@@ -69,9 +69,3 @@ class ForexService {
         return json.substring(start, end);
     }
 }
-/**
- * @program: Botss44
- * @description:
- * @autor: twist328
- * @create: 2025-04-24 12
- **/

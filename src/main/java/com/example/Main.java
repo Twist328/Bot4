@@ -9,3 +9,5 @@ public class Main {
         botsApi.registerBot(new CurrencyBot());
     }
 }
+
+
