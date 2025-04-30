@@ -38,8 +38,15 @@ public class CurrencyBot extends TelegramLongPollingBot {
                 new BotCommand("/gbpusd", "Курс GBP/USD"),
                 new BotCommand("/gbpjpy", "Курс GBP/JPY"),
                 new BotCommand("/eurchf", "Курс EUR/CHF"),
-                new BotCommand("/eurgbp", "Курс EUR/GBP")
-        );
+                new BotCommand("/eurgbp", "Курс EUR/GBP"),
+                new BotCommand("/usdjpy", "Курс USD/JPY"),
+                new BotCommand("/gbpcad", "Курс GBP/CAD"),
+                new BotCommand("/gbpchf", "Курс GBP/CHF"),
+                new BotCommand("/cadchf", "Курс CAD/CHF"),
+                new BotCommand("/audusd", "Курс AUD/USD"),
+                new BotCommand("/nzdaud", "Курс NZD/AUD"),
+                new BotCommand("/nzdjpy", "Курс NZD/JPY")
+                );
 
         try {
             execute(new SetMyCommands(commands, new BotCommandScopeDefault(), null));
@@ -78,6 +85,13 @@ public class CurrencyBot extends TelegramLongPollingBot {
                 case "/GBPJPY":
                 case "/EURCHF":
                 case "/EURGBP":
+                case "/USDJPY":
+                case "/GBPCAD":
+                case "/GBPCHF":
+                case "/CADCHF":
+                case "/AUDUSD":
+                case "/NZDAUD":
+                case "/NZDJPY":
                     message = new SendMessage(chatId, forexService.getRate(messageText.replace("/", "")));
                     break;
 
