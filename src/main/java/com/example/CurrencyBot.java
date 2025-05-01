@@ -45,8 +45,9 @@ public class CurrencyBot extends TelegramLongPollingBot {
                 new BotCommand("/cadchf", "Курс CAD/CHF"),
                 new BotCommand("/audusd", "Курс AUD/USD"),
                 new BotCommand("/nzdaud", "Курс NZD/AUD"),
-                new BotCommand("/nzdjpy", "Курс NZD/JPY")
-                );
+                new BotCommand("/nzdjpy", "Курс NZD/JPY"),
+                new BotCommand("/audjpy", "Курс AUD/JPY")
+        );
 
         try {
             execute(new SetMyCommands(commands, new BotCommandScopeDefault(), null));
@@ -92,6 +93,7 @@ public class CurrencyBot extends TelegramLongPollingBot {
                 case "/AUDUSD":
                 case "/NZDAUD":
                 case "/NZDJPY":
+                case "/AUDJPY":
                     message = new SendMessage(chatId, forexService.getRate(messageText.replace("/", "")));
                     break;
 
